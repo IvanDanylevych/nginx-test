@@ -1,21 +1,29 @@
-version: "3.8"
 services:
   api:
-    build:
-      context: ./api
-      dockerfile: Dockerfile.dev
+    container_name: api_dev
+    image: node:20
+    working_dir: /usr/src/app
+    command: /usr/bin/bash -c "npm i && npm run start"
     ports:
       - "3001:3001"
     volumes:
       - ./api:/usr/src/app
-    command: npm run dev
     environment:
       NODE_ENV: development
+    depends_on:
+    - api_db 
+  api_db:
+    container_name: api_db_dev
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_api:/data/db
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
-    command: npm run start
+    container_name: frontend_dev
+    image: node:20
+    working_dir: /usr/src/app
+    command: /usr/bin/bash -c "npm i && npm start"
     ports:
     - "3000:3000"
     volumes:
@@ -30,6 +38,7 @@ services:
       - api
   nginx:
     image: nginx:latest
+    container_name: nginx_dev
     volumes:
       - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/default.conf
     depends_on:
@@ -37,3 +46,5 @@ services:
       - api
     ports:
       - "80:80"
+volumes:
+  mongodb_api:
